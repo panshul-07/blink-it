@@ -173,10 +173,18 @@ export default function App() {
     [snapshot.outputs]
   );
 
-  const trendPoints = useMemo(() => {
+  const activeStandard = useMemo(
+    () =>
+      snapshot.standards.find((s) => s.processType === swapForm.processType) ??
+      snapshot.standards[0] ??
+      null,
+    [snapshot.standards, swapForm.processType]
+  );
+
+  const trendCoordinates = useMemo(() => {
     const width = 360;
     const height = 150;
-    if (recentOutputs.length === 0) return "";
+    if (recentOutputs.length === 0) return [];
     const minX = 18;
     const maxX = width - 18;
     const minY = 12;
@@ -188,10 +196,23 @@ export default function App() {
             ? width / 2
             : minX + (idx * (maxX - minX)) / (recentOutputs.length - 1);
         const y = maxY - (Math.max(0, Math.min(100, out.actualYieldPct)) / 100) * (maxY - minY);
-        return `${x},${y}`;
-      })
-      .join(" ");
+        return { tokenId: out.tokenId, x, y, actualYieldPct: out.actualYieldPct };
+      });
   }, [recentOutputs]);
+  const trendPoints = useMemo(
+    () => trendCoordinates.map((p) => `${p.x},${p.y}`).join(" "),
+    [trendCoordinates]
+  );
+
+  const yForPct = (pct: number) => {
+    const minY = 12;
+    const maxY = 132;
+    return maxY - (Math.max(0, Math.min(100, pct)) / 100) * (maxY - minY);
+  };
+  const trendAvgYield =
+    recentOutputs.length > 0
+      ? recentOutputs.reduce((sum, item) => sum + item.actualYieldPct, 0) / recentOutputs.length
+      : null;
 
   const alertBars = useMemo(() => {
     const infoCount = snapshot.alerts.filter((a) => a.severity === "INFO").length;
@@ -235,6 +256,35 @@ export default function App() {
       legend: slices.map((s) => ({ label: s.label, value: s.value, color: s.color }))
     };
   }, [snapshot.outputs]);
+
+  const processPerformance = useMemo(
+    () =>
+      snapshot.standards.map((standard) => {
+        const outputsForType = snapshot.outputs.filter((o) => o.processType === standard.processType);
+        const avgActualYield =
+          outputsForType.length > 0
+            ? outputsForType.reduce((sum, item) => sum + item.actualYieldPct, 0) / outputsForType.length
+            : null;
+        return {
+          processType: standard.processType,
+          minimumPct: standard.minimumPct,
+          maximumPct: standard.maximumPct,
+          avgActualYield,
+          count: outputsForType.length
+        };
+      }),
+    [snapshot.standards, snapshot.outputs]
+  );
+
+  const outputQuantityBars = useMemo(() => {
+    const maxQty = Math.max(1, ...recentOutputs.map((o) => o.outputQuantity));
+    return recentOutputs.map((out, index) => ({
+      tokenId: out.tokenId,
+      label: `#${index + 1}`,
+      qty: out.outputQuantity,
+      heightPct: (out.outputQuantity / maxQty) * 100
+    }));
+  }, [recentOutputs]);
 
   const processorRows = useMemo(() => {
     const q = processorQuery.trim().toLowerCase();
@@ -362,14 +412,30 @@ export default function App() {
               <svg viewBox="0 0 360 150" className="trend-svg" role="img" aria-label="Yield trend">
                 <line x1="14" y1="132" x2="348" y2="132" className="axis-line" />
                 <line x1="14" y1="12" x2="14" y2="132" className="axis-line" />
+                {activeStandard && (
+                  <rect
+                    x="14"
+                    y={yForPct(activeStandard.maximumPct)}
+                    width="334"
+                    height={Math.max(
+                      4,
+                      yForPct(activeStandard.minimumPct) - yForPct(activeStandard.maximumPct)
+                    )}
+                    className="range-band"
+                  />
+                )}
+                {trendAvgYield !== null && (
+                  <line
+                    x1="14"
+                    y1={yForPct(trendAvgYield)}
+                    x2="348"
+                    y2={yForPct(trendAvgYield)}
+                    className="avg-line"
+                  />
+                )}
                 {trendPoints && <polyline points={trendPoints} className="trend-line" />}
-                {recentOutputs.map((out, idx) => {
-                  const x =
-                    recentOutputs.length === 1
-                      ? 180
-                      : 18 + (idx * (342 - 18)) / (recentOutputs.length - 1);
-                  const y = 132 - (Math.max(0, Math.min(100, out.actualYieldPct)) / 100) * (132 - 12);
-                  return <circle key={out.tokenId} cx={x} cy={y} r="2.8" className="trend-dot" />;
+                {trendCoordinates.map((point) => {
+                  return <circle key={point.tokenId} cx={point.x} cy={point.y} r="2.8" className="trend-dot" />;
                 })}
               </svg>
               <small>
@@ -378,6 +444,54 @@ export default function App() {
                   ? `${recentOutputs[recentOutputs.length - 1].actualYieldPct.toFixed(1)}%`
                   : "n/a"}
               </small>
+            </article>
+
+            <article className="graph-card">
+              <h3>Output Quantity Timeline</h3>
+              <div className="timeline-bars">
+                {outputQuantityBars.length ? (
+                  outputQuantityBars.map((bar) => (
+                    <div key={bar.tokenId} className="timeline-col">
+                      <div className="timeline-track">
+                        <div className="timeline-fill" style={{ height: `${bar.heightPct}%` }} />
+                      </div>
+                      <small>{bar.label}</small>
+                    </div>
+                  ))
+                ) : (
+                  <p>No output quantities yet.</p>
+                )}
+              </div>
+            </article>
+
+            <article className="graph-card">
+              <h3>Process Performance vs Allowed Range</h3>
+              <div className="perf-list">
+                {processPerformance.map((row) => (
+                  <div key={row.processType} className="perf-row">
+                    <div className="perf-head">
+                      <strong>{row.processType}</strong>
+                      <small>
+                        {row.avgActualYield !== null
+                          ? `${row.avgActualYield.toFixed(1)}% avg (${row.count})`
+                          : "No outputs"}
+                      </small>
+                    </div>
+                    <div className="perf-track">
+                      <div
+                        className="perf-range"
+                        style={{
+                          left: `${row.minimumPct}%`,
+                          width: `${Math.max(2, row.maximumPct - row.minimumPct)}%`
+                        }}
+                      />
+                      {row.avgActualYield !== null && (
+                        <div className="perf-marker" style={{ left: `${row.avgActualYield}%` }} />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </article>
 
             <article className="graph-card">
@@ -394,7 +508,6 @@ export default function App() {
                 ))}
               </div>
             </article>
-
             <article className="graph-card">
               <h3>Output Distribution by Process</h3>
               <div className="ring-wrap">
