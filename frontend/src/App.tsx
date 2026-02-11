@@ -161,6 +161,77 @@ export default function App() {
     ? snapshot.processors.reduce((sum, p) => sum + p.complianceScore, 0) / snapshot.processors.length
     : 0;
 
+  const recentOutputs = useMemo(
+    () =>
+      [...snapshot.outputs]
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+        .slice(-12),
+    [snapshot.outputs]
+  );
+
+  const trendPoints = useMemo(() => {
+    const width = 360;
+    const height = 150;
+    if (recentOutputs.length === 0) return "";
+    const minX = 18;
+    const maxX = width - 18;
+    const minY = 12;
+    const maxY = height - 18;
+    return recentOutputs
+      .map((out, idx) => {
+        const x =
+          recentOutputs.length === 1
+            ? width / 2
+            : minX + (idx * (maxX - minX)) / (recentOutputs.length - 1);
+        const y = maxY - (Math.max(0, Math.min(100, out.actualYieldPct)) / 100) * (maxY - minY);
+        return `${x},${y}`;
+      })
+      .join(" ");
+  }, [recentOutputs]);
+
+  const alertBars = useMemo(() => {
+    const infoCount = snapshot.alerts.filter((a) => a.severity === "INFO").length;
+    const warning = snapshot.alerts.filter((a) => a.severity === "WARNING").length;
+    const critical = snapshot.alerts.filter((a) => a.severity === "CRITICAL").length;
+    const maxValue = Math.max(1, infoCount, warning, critical);
+    return [
+      { key: "Info", count: infoCount, heightPct: (infoCount / maxValue) * 100, tone: "info" },
+      { key: "Warning", count: warning, heightPct: (warning / maxValue) * 100, tone: "warning" },
+      { key: "Critical", count: critical, heightPct: (critical / maxValue) * 100, tone: "critical" }
+    ];
+  }, [snapshot.alerts]);
+
+  const processDistribution = useMemo(() => {
+    const groups = snapshot.outputs.reduce<Record<string, number>>((acc, out) => {
+      acc[out.processType] = (acc[out.processType] ?? 0) + 1;
+      return acc;
+    }, {});
+    const entries = Object.entries(groups);
+    const total = entries.reduce((sum, [, count]) => sum + count, 0);
+    if (!total) {
+      return {
+        style: "conic-gradient(#cbd5e1 0deg 360deg)",
+        legend: [{ label: "No outputs yet", value: 0, color: "#94a3b8" }]
+      };
+    }
+    const palette = ["#1f6feb", "#0b7285", "#e67700", "#b02a37", "#7c3aed"];
+    let start = 0;
+    const slices = entries.map(([label, value], idx) => {
+      const angle = (value / total) * 360;
+      const end = start + angle;
+      const color = palette[idx % palette.length];
+      const slice = { label, value, color, start, end };
+      start = end;
+      return slice;
+    });
+    return {
+      style: `conic-gradient(${slices
+        .map((s) => `${s.color} ${s.start.toFixed(1)}deg ${s.end.toFixed(1)}deg`)
+        .join(",")})`,
+      legend: slices.map((s) => ({ label: s.label, value: s.value, color: s.color }))
+    };
+  }, [snapshot.outputs]);
+
   const processorRows = useMemo(() => {
     const q = processorQuery.trim().toLowerCase();
     const filtered = snapshot.processors.filter((processor) => {
@@ -258,6 +329,66 @@ export default function App() {
       {notice && <p className="banner success">{notice}</p>}
 
       <main className="grid">
+        <section className="panel span-2">
+          <h2>Live Graphs</h2>
+          <div className="graphs-grid">
+            <article className="graph-card">
+              <h3>Yield Trend (Actual %)</h3>
+              <svg viewBox="0 0 360 150" className="trend-svg" role="img" aria-label="Yield trend">
+                <line x1="14" y1="132" x2="348" y2="132" className="axis-line" />
+                <line x1="14" y1="12" x2="14" y2="132" className="axis-line" />
+                {trendPoints && <polyline points={trendPoints} className="trend-line" />}
+                {recentOutputs.map((out, idx) => {
+                  const x =
+                    recentOutputs.length === 1
+                      ? 180
+                      : 18 + (idx * (342 - 18)) / (recentOutputs.length - 1);
+                  const y = 132 - (Math.max(0, Math.min(100, out.actualYieldPct)) / 100) * (132 - 12);
+                  return <circle key={out.tokenId} cx={x} cy={y} r="2.8" className="trend-dot" />;
+                })}
+              </svg>
+              <small>
+                Last {recentOutputs.length} outputs · latest{" "}
+                {recentOutputs.length
+                  ? `${recentOutputs[recentOutputs.length - 1].actualYieldPct.toFixed(1)}%`
+                  : "n/a"}
+              </small>
+            </article>
+
+            <article className="graph-card">
+              <h3>Alert Severity Live Bars</h3>
+              <div className="bars-wrap">
+                {alertBars.map((bar) => (
+                  <div key={bar.key} className="bar-col">
+                    <div className="bar-track">
+                      <div className={`bar-fill ${bar.tone}`} style={{ height: `${bar.heightPct}%` }} />
+                    </div>
+                    <strong>{bar.count}</strong>
+                    <small>{bar.key}</small>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="graph-card">
+              <h3>Output Distribution by Process</h3>
+              <div className="ring-wrap">
+                <div className="donut-ring" style={{ background: processDistribution.style }} />
+                <div className="ring-legend">
+                  {processDistribution.legend.map((item) => (
+                    <div key={item.label} className="legend-item">
+                      <span style={{ background: item.color }} />
+                      <small>
+                        {item.label}: {item.value}
+                      </small>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
         <section className="panel">
           <h2>Yield Standards Oracle</h2>
           <table>
@@ -526,4 +657,3 @@ export default function App() {
     </div>
   );
 }
-
