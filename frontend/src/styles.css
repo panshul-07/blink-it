@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap");
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --bg-a: #f2efe2;
   --bg-b: #d7e3f5;
@@ -62,6 +66,17 @@ body {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.switch-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: var(--panel);
+  color: var(--ink-soft);
 }
 
 .eyebrow {

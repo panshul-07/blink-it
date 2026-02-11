@@ -28,6 +28,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", mode);
+    document.documentElement.classList.toggle("dark", mode === "dark");
     localStorage.setItem(STORAGE_KEY, mode);
   }, [mode]);
 
@@ -47,4 +48,3 @@ export function useTheme(): ThemeContextValue {
   if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
   return ctx;
 }
-

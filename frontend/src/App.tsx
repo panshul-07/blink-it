@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { fetchDashboard, mintInputMaterial, processSwap } from "./api";
 import { useTheme } from "./theme";
 import type { DashboardSnapshot, ProcessorDDP } from "./types";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import { Badge } from "./components/ui/badge";
+import { Switch } from "./components/ui/switch";
 
 type SwapForm = {
   processorId: string;
@@ -286,15 +290,17 @@ export default function App() {
           </p>
         </div>
         <div className="hero-actions">
-          <button className="ghost-btn" onClick={toggleTheme}>
-            Theme: {mode === "dark" ? "Dark" : "Light"}
-          </button>
-          <button className="ghost-btn" onClick={() => setAutoRefresh((v) => !v)}>
-            Auto Refresh: {autoRefresh ? "On" : "Off"}
-          </button>
-          <button className="refresh-btn" onClick={loadDashboard} disabled={loading}>
+          <div className="switch-chip">
+            <span>Theme</span>
+            <Switch checked={mode === "dark"} onCheckedChange={toggleTheme} />
+          </div>
+          <div className="switch-chip">
+            <span>Auto Refresh</span>
+            <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} />
+          </div>
+          <Button className="refresh-btn" onClick={loadDashboard} disabled={loading}>
             {loading ? "Refreshing..." : "Refresh Data"}
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -414,7 +420,7 @@ export default function App() {
         <section className="panel">
           <h2>Processor Registry</h2>
           <div className="toolbar">
-            <input
+            <Input
               placeholder="Search processors..."
               value={processorQuery}
               onChange={(e) => setProcessorQuery(e.target.value)}
@@ -428,11 +434,7 @@ export default function App() {
               <option value="id_asc">ID A-Z</option>
             </select>
             <label className="checkbox-inline">
-              <input
-                type="checkbox"
-                checked={showSuspendedOnly}
-                onChange={(e) => setShowSuspendedOnly(e.target.checked)}
-              />
+              <Switch checked={showSuspendedOnly} onCheckedChange={setShowSuspendedOnly} />
               Suspended only
             </label>
           </div>
@@ -444,9 +446,9 @@ export default function App() {
                   <small>{p.equipmentSpecs}</small>
                 </div>
                 <div className="chip-row">
-                  <span className="chip">Cert {p.certificationLevel}</span>
-                  <span className="chip">{(p.complianceScore * 100).toFixed(1)}% compliance</span>
-                  {p.suspended && <span className="chip danger">Suspended</span>}
+                  <Badge variant="secondary">Cert {p.certificationLevel}</Badge>
+                  <Badge variant="outline">{(p.complianceScore * 100).toFixed(1)}% compliance</Badge>
+                  {p.suspended && <Badge variant="critical">Suspended</Badge>}
                 </div>
               </article>
             ))}
@@ -459,21 +461,21 @@ export default function App() {
           <form className="form" onSubmit={handleMint}>
             <label>
               Processor ID
-              <input
+              <Input
                 value={mintForm.ownerProcessorId}
                 onChange={(e) => setMintForm({ ...mintForm, ownerProcessorId: e.target.value })}
               />
             </label>
             <label>
               Process Type
-              <input
+              <Input
                 value={mintForm.processType}
                 onChange={(e) => setMintForm({ ...mintForm, processType: e.target.value })}
               />
             </label>
             <label>
               Quantity
-              <input
+              <Input
                 type="number"
                 value={mintForm.quantity}
                 onChange={(e) => setMintForm({ ...mintForm, quantity: Number(e.target.value) })}
@@ -481,21 +483,21 @@ export default function App() {
             </label>
             <label>
               Farm Hash
-              <input
+              <Input
                 value={mintForm.originFarmHash}
                 onChange={(e) => setMintForm({ ...mintForm, originFarmHash: e.target.value })}
               />
             </label>
             <label>
               Quality Grade
-              <input
+              <Input
                 value={mintForm.qualityGrade}
                 onChange={(e) => setMintForm({ ...mintForm, qualityGrade: e.target.value })}
               />
             </label>
             <label>
               Moisture %
-              <input
+              <Input
                 type="number"
                 value={mintForm.moistureContent}
                 onChange={(e) =>
@@ -503,9 +505,9 @@ export default function App() {
                 }
               />
             </label>
-            <button type="submit" disabled={minting}>
+            <Button type="submit" disabled={minting}>
               {minting ? "Minting..." : "Mint Input Token"}
-            </button>
+            </Button>
           </form>
         </section>
 
@@ -513,20 +515,22 @@ export default function App() {
           <h2>Token Swap Enforcement</h2>
           <div className="scenario-row">
             {Object.entries(scenarioPresets).map(([key, value]) => (
-              <button
+              <Button
                 key={key}
                 className="mini-btn"
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => applySwapScenario(key as keyof typeof scenarioPresets)}
               >
                 {value.name}
-              </button>
+              </Button>
             ))}
           </div>
           <form className="form" onSubmit={handleSwap}>
             <label>
               Processor ID
-              <input
+              <Input
                 value={swapForm.processorId}
                 onChange={(e) => setSwapForm({ ...swapForm, processorId: e.target.value })}
               />
@@ -556,7 +560,7 @@ export default function App() {
             </label>
             <label>
               Input Qty
-              <input
+              <Input
                 type="number"
                 value={swapForm.inputQty}
                 onChange={(e) => setSwapForm({ ...swapForm, inputQty: Number(e.target.value) })}
@@ -564,7 +568,7 @@ export default function App() {
             </label>
             <label>
               Claimed Output Qty
-              <input
+              <Input
                 type="number"
                 value={swapForm.claimedOutputQty}
                 onChange={(e) =>
@@ -574,14 +578,14 @@ export default function App() {
             </label>
             <label>
               Process Type
-              <input
+              <Input
                 value={swapForm.processType}
                 onChange={(e) => setSwapForm({ ...swapForm, processType: e.target.value })}
               />
             </label>
             <label>
               Evaporation %
-              <input
+              <Input
                 type="number"
                 value={swapForm.evaporation}
                 onChange={(e) => setSwapForm({ ...swapForm, evaporation: Number(e.target.value) })}
@@ -589,7 +593,7 @@ export default function App() {
             </label>
             <label>
               Waste %
-              <input
+              <Input
                 type="number"
                 value={swapForm.waste}
                 onChange={(e) => setSwapForm({ ...swapForm, waste: Number(e.target.value) })}
@@ -597,7 +601,7 @@ export default function App() {
             </label>
             <label>
               Quality Rejection %
-              <input
+              <Input
                 type="number"
                 value={swapForm.qualityRejection}
                 onChange={(e) =>
@@ -605,9 +609,9 @@ export default function App() {
                 }
               />
             </label>
-            <button type="submit" disabled={swapping || !swapForm.inputTokenId}>
+            <Button type="submit" disabled={swapping || !swapForm.inputTokenId}>
               {swapping ? "Processing..." : "Execute Swap"}
-            </button>
+            </Button>
           </form>
         </section>
 
