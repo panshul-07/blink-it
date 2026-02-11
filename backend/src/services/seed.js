@@ -47,52 +47,98 @@ export const seedStore = (store) => {
     reason: "Cane input baseline"
   });
 
-  store.registerProcessor({
-    processorId: "proc_alpha",
-    processAuthorizations: ["grain_cleaning_drying", "fruit_sorting_packaging"],
-    certificationLevel: "L2",
-    equipmentSpecs: "Optical sorter + rotary cleaner",
-    complianceScore: 0.97
-  });
+  const processors = [
+    {
+      processorId: "proc_alpha",
+      processAuthorizations: ["grain_cleaning_drying", "fruit_sorting_packaging"],
+      certificationLevel: "L2",
+      equipmentSpecs: "Optical sorter + rotary cleaner",
+      complianceScore: 0.97
+    },
+    {
+      processorId: "proc_beta",
+      processAuthorizations: ["grain_cleaning_drying", "coffee_bean_processing"],
+      certificationLevel: "L1",
+      equipmentSpecs: "Mechanical separator",
+      complianceScore: 0.9
+    },
+    {
+      processorId: "proc_gamma",
+      processAuthorizations: ["metal_ore_refining"],
+      certificationLevel: "L2",
+      equipmentSpecs: "Crushing + flotation plant",
+      complianceScore: 0.94
+    },
+    {
+      processorId: "proc_delta",
+      processAuthorizations: ["cotton_ginning"],
+      certificationLevel: "L1",
+      equipmentSpecs: "Saw gin line",
+      complianceScore: 0.91
+    },
+    {
+      processorId: "proc_epsilon",
+      processAuthorizations: ["sugarcane_processing"],
+      certificationLevel: "L2",
+      equipmentSpecs: "Diffuser + clarifier mill",
+      complianceScore: 0.92
+    },
+    {
+      processorId: "proc_zeta",
+      processAuthorizations: ["fruit_sorting_packaging", "sugarcane_processing"],
+      certificationLevel: "L2",
+      equipmentSpecs: "Packing lane + cane press",
+      complianceScore: 0.93
+    },
+    {
+      processorId: "proc_eta",
+      processAuthorizations: ["metal_ore_refining", "coffee_bean_processing"],
+      certificationLevel: "L2",
+      equipmentSpecs: "Roaster + flotation circuit",
+      complianceScore: 0.95
+    },
+    {
+      processorId: "proc_theta",
+      processAuthorizations: ["cotton_ginning", "grain_cleaning_drying"],
+      certificationLevel: "L1",
+      equipmentSpecs: "Saw gin + dryer line",
+      complianceScore: 0.89
+    },
+    {
+      processorId: "proc_iota",
+      processAuthorizations: ["fruit_sorting_packaging"],
+      certificationLevel: "L1",
+      equipmentSpecs: "Vision sorter line",
+      complianceScore: 0.9
+    },
+    {
+      processorId: "proc_kappa",
+      processAuthorizations: ["sugarcane_processing"],
+      certificationLevel: "L1",
+      equipmentSpecs: "Clarifier + evaporator train",
+      complianceScore: 0.88
+    }
+  ];
 
-  store.registerProcessor({
-    processorId: "proc_beta",
-    processAuthorizations: ["grain_cleaning_drying", "coffee_bean_processing"],
-    certificationLevel: "L1",
-    equipmentSpecs: "Mechanical separator",
-    complianceScore: 0.9
-  });
+  processors.forEach((processor) => store.registerProcessor(processor));
 
-  store.registerProcessor({
-    processorId: "proc_gamma",
-    processAuthorizations: ["metal_ore_refining"],
-    certificationLevel: "L2",
-    equipmentSpecs: "Crushing + flotation plant",
-    complianceScore: 0.94
-  });
+  const starterInputs = [
+    ["proc_alpha", "grain_cleaning_drying", 1000, "farm_hash_001"],
+    ["proc_zeta", "fruit_sorting_packaging", 900, "farm_hash_002"],
+    ["proc_gamma", "metal_ore_refining", 1200, "mine_hash_003"],
+    ["proc_beta", "coffee_bean_processing", 800, "farm_hash_004"],
+    ["proc_delta", "cotton_ginning", 950, "farm_hash_005"],
+    ["proc_epsilon", "sugarcane_processing", 1100, "farm_hash_006"]
+  ];
 
-  store.registerProcessor({
-    processorId: "proc_delta",
-    processAuthorizations: ["cotton_ginning"],
-    certificationLevel: "L1",
-    equipmentSpecs: "Saw gin line",
-    complianceScore: 0.91
-  });
-
-  store.registerProcessor({
-    processorId: "proc_epsilon",
-    processAuthorizations: ["sugarcane_processing"],
-    certificationLevel: "L2",
-    equipmentSpecs: "Diffuser + clarifier mill",
-    complianceScore: 0.92
-  });
-
-  store.mintInputMaterial({
-    ownerProcessorId: "proc_alpha",
-    processType: "grain_cleaning_drying",
-    quantity: 1000,
-    originFarmHash: "farm_hash_001",
-    qualityGrade: "A",
-    moistureContent: 11.2
+  starterInputs.forEach(([ownerProcessorId, processType, quantity, originFarmHash]) => {
+    store.mintInputMaterial({
+      ownerProcessorId,
+      processType,
+      quantity,
+      originFarmHash,
+      qualityGrade: "A",
+      moistureContent: 11.2
+    });
   });
 };

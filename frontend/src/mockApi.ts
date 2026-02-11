@@ -77,6 +77,46 @@ const processors: ProcessorDDP[] = [
     equipmentSpecs: "Diffuser + clarifier mill",
     complianceScore: 0.92,
     suspended: false
+  },
+  {
+    processorId: "proc_zeta",
+    processAuthorizations: ["fruit_sorting_packaging", "sugarcane_processing"],
+    certificationLevel: "L2",
+    equipmentSpecs: "Packing lane + cane press",
+    complianceScore: 0.93,
+    suspended: false
+  },
+  {
+    processorId: "proc_eta",
+    processAuthorizations: ["metal_ore_refining", "coffee_bean_processing"],
+    certificationLevel: "L2",
+    equipmentSpecs: "Roaster + flotation circuit",
+    complianceScore: 0.95,
+    suspended: false
+  },
+  {
+    processorId: "proc_theta",
+    processAuthorizations: ["cotton_ginning", "grain_cleaning_drying"],
+    certificationLevel: "L1",
+    equipmentSpecs: "Saw gin + dryer line",
+    complianceScore: 0.89,
+    suspended: false
+  },
+  {
+    processorId: "proc_iota",
+    processAuthorizations: ["fruit_sorting_packaging"],
+    certificationLevel: "L1",
+    equipmentSpecs: "Vision sorter line",
+    complianceScore: 0.9,
+    suspended: false
+  },
+  {
+    processorId: "proc_kappa",
+    processAuthorizations: ["sugarcane_processing"],
+    certificationLevel: "L1",
+    equipmentSpecs: "Clarifier + evaporator train",
+    complianceScore: 0.88,
+    suspended: false
   }
 ];
 
@@ -89,6 +129,56 @@ const inputs: InputMaterialDDP[] = [
     qualityGrade: "A",
     moistureContent: 11.2,
     ownerProcessorId: "proc_alpha",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "fruit_sorting_packaging",
+    quantity: 900,
+    originFarmHash: "farm_hash_seed_2",
+    qualityGrade: "A",
+    moistureContent: 10.4,
+    ownerProcessorId: "proc_zeta",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "metal_ore_refining",
+    quantity: 1200,
+    originFarmHash: "mine_hash_seed_3",
+    qualityGrade: "A",
+    moistureContent: 4.2,
+    ownerProcessorId: "proc_gamma",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "coffee_bean_processing",
+    quantity: 800,
+    originFarmHash: "farm_hash_seed_4",
+    qualityGrade: "A",
+    moistureContent: 12.1,
+    ownerProcessorId: "proc_beta",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "cotton_ginning",
+    quantity: 950,
+    originFarmHash: "farm_hash_seed_5",
+    qualityGrade: "A",
+    moistureContent: 9.6,
+    ownerProcessorId: "proc_delta",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "sugarcane_processing",
+    quantity: 1100,
+    originFarmHash: "farm_hash_seed_6",
+    qualityGrade: "A",
+    moistureContent: 15.4,
+    ownerProcessorId: "proc_epsilon",
     createdAt: now()
   }
 ];
@@ -231,15 +321,13 @@ export async function processMockSwap(input: SwapInput): Promise<OutputMaterialD
   };
 
   outputs.unshift(output);
-  if (severity !== "INFO") {
-    addAlert({
-      processorId: input.processorId,
-      processType: input.processType,
-      severity,
-      message,
-      outputTokenId: output.tokenId
-    });
-  }
+  addAlert({
+    processorId: input.processorId,
+    processType: input.processType,
+    severity,
+    message,
+    outputTokenId: output.tokenId
+  });
 
   return output;
 }

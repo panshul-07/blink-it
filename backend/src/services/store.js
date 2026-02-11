@@ -223,15 +223,13 @@ export class ArchitectureOneStore {
     };
     this.outputMaterials.set(outputTokenId, output);
 
-    if (severity !== "INFO") {
-      this.addAlert({
-        processorId: input.processorId,
-        processType: input.processType,
-        severity,
-        message,
-        outputTokenId
-      });
-    }
+    this.addAlert({
+      processorId: input.processorId,
+      processType: input.processType,
+      severity,
+      message,
+      outputTokenId
+    });
 
     return output;
   }
