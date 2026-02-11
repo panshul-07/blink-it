@@ -20,6 +20,59 @@ type SwapForm = {
 
 type ProcessorSort = "score_desc" | "score_asc" | "id_asc";
 
+type ProcessMeta = {
+  label: string;
+  inputMaterial: string;
+  typicalLoss: string;
+  actionBelow: string;
+  actionAbove: string;
+};
+
+const PROCESS_CATALOG: Record<string, ProcessMeta> = {
+  grain_cleaning_drying: {
+    label: "Grain Cleaning & Drying",
+    inputMaterial: "Paddy/Wheat",
+    typicalLoss: "3% - 6%",
+    actionBelow: "Flag low efficiency",
+    actionAbove: "Trigger audit (fraud risk)"
+  },
+  fruit_sorting_packaging: {
+    label: "Fruit Sorting & Packaging",
+    inputMaterial: "Apples/Oranges",
+    typicalLoss: "5% - 8%",
+    actionBelow: "Flag machine fault",
+    actionAbove: "Trigger audit"
+  },
+  metal_ore_refining: {
+    label: "Metal Ore Refining",
+    inputMaterial: "Iron/Copper",
+    typicalLoss: "4% - 7%",
+    actionBelow: "Maintenance alert",
+    actionAbove: "Pause transaction"
+  },
+  coffee_bean_processing: {
+    label: "Coffee Bean Processing",
+    inputMaterial: "Raw beans",
+    typicalLoss: "6% - 9%",
+    actionBelow: "Quality loss warning",
+    actionAbove: "Trigger audit"
+  },
+  cotton_ginning: {
+    label: "Cotton Ginning",
+    inputMaterial: "Raw cotton",
+    typicalLoss: "7% - 10%",
+    actionBelow: "Yield drop alert",
+    actionAbove: "Freeze output"
+  },
+  sugarcane_processing: {
+    label: "Sugarcane Processing",
+    inputMaterial: "Cane input",
+    typicalLoss: "8% - 12%",
+    actionBelow: "Process inefficiency",
+    actionAbove: "Pause & audit"
+  }
+};
+
 const emptySnapshot: DashboardSnapshot = {
   standards: [],
   processors: [],
@@ -62,7 +115,7 @@ export default function App() {
 
   const [mintForm, setMintForm] = useState({
     ownerProcessorId: "proc_alpha",
-    processType: "grain_cleaning",
+    processType: "grain_cleaning_drying",
     quantity: 1000,
     originFarmHash: "farm_hash_demo",
     qualityGrade: "A",
@@ -75,7 +128,7 @@ export default function App() {
       inputTokenId: "",
       inputQty: 1000,
       claimedOutputQty: 900,
-      processType: "grain_cleaning",
+      processType: "grain_cleaning_drying",
       evaporation: 3,
       waste: 7,
       qualityRejection: 0
@@ -326,6 +379,11 @@ export default function App() {
     return snapshot.standards
       .map((standard) => ({
         processType: standard.processType,
+        label: PROCESS_CATALOG[standard.processType]?.label ?? standard.processType,
+        inputMaterial: PROCESS_CATALOG[standard.processType]?.inputMaterial ?? "n/a",
+        typicalLoss: PROCESS_CATALOG[standard.processType]?.typicalLoss ?? "n/a",
+        actionBelow: PROCESS_CATALOG[standard.processType]?.actionBelow ?? "n/a",
+        actionAbove: PROCESS_CATALOG[standard.processType]?.actionAbove ?? "n/a",
         minimumPct: standard.minimumPct,
         maximumPct: standard.maximumPct,
         processors: (processorByType[standard.processType] ?? []).sort()
@@ -534,6 +592,8 @@ export default function App() {
               <thead>
                 <tr>
                   <th>Process Type</th>
+                  <th>Input</th>
+                  <th>Loss</th>
                   <th>Min %</th>
                   <th>Max %</th>
                   <th>Processors</th>
@@ -543,6 +603,8 @@ export default function App() {
                 {processTypeExplorer.map((item) => (
                   <tr key={item.processType}>
                     <td>{item.processType}</td>
+                    <td>{item.inputMaterial}</td>
+                    <td>{item.typicalLoss}</td>
                     <td>{item.minimumPct}</td>
                     <td>{item.maximumPct}</td>
                     <td>{item.processors.length}</td>
@@ -555,9 +617,12 @@ export default function App() {
             {processTypeExplorer.map((item) => (
               <article key={item.processType} className="process-type-card">
                 <div>
-                  <strong>{item.processType}</strong>
+                  <strong>{item.label}</strong>
                   <small>
-                    Allowed yield range {item.minimumPct}% - {item.maximumPct}%
+                    {item.processType} | input {item.inputMaterial} | typical loss {item.typicalLoss}
+                  </small>
+                  <small>
+                    Below range: {item.actionBelow} | Above range: {item.actionAbove}
                   </small>
                 </div>
                 <div className="chip-row">
@@ -659,6 +724,7 @@ export default function App() {
               <Input
                 value={mintForm.processType}
                 onChange={(e) => setMintForm({ ...mintForm, processType: e.target.value })}
+                list="all-process-types"
               />
             </label>
             <label>
@@ -769,6 +835,7 @@ export default function App() {
               <Input
                 value={swapForm.processType}
                 onChange={(e) => setSwapForm({ ...swapForm, processType: e.target.value })}
+                list="all-process-types"
               />
             </label>
             <label>
@@ -846,6 +913,11 @@ export default function App() {
           </div>
         </section>
       </main>
+      <datalist id="all-process-types">
+        {snapshot.standards.map((s) => (
+          <option key={s.processType} value={s.processType} />
+        ))}
+      </datalist>
     </div>
   );
 }
