@@ -212,6 +212,39 @@ button[type="submit"]:disabled {
   color: var(--ink-soft);
 }
 
+.help-text {
+  margin: 0 0 10px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.explainer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.explain-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+:root[data-theme="dark"] .explain-card {
+  background: rgba(30, 41, 59, 0.45);
+}
+
+.explain-card strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.explain-card p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
 .span-2 {
   grid-column: 1 / -1;
 }
@@ -622,6 +655,9 @@ td {
     grid-template-columns: 1fr;
   }
   .graphs-grid {
+    grid-template-columns: 1fr;
+  }
+  .explainer-grid {
     grid-template-columns: 1fr;
   }
   .ring-wrap {

@@ -391,6 +391,15 @@ export default function App() {
       .sort((a, b) => a.processType.localeCompare(b.processType));
   }, [snapshot.standards, snapshot.processors]);
 
+  const allProcessorIds = useMemo(
+    () => snapshot.processors.map((p) => p.processorId).sort((a, b) => a.localeCompare(b)),
+    [snapshot.processors]
+  );
+  const allProcessTypes = useMemo(
+    () => snapshot.standards.map((s) => s.processType).sort((a, b) => a.localeCompare(b)),
+    [snapshot.standards]
+  );
+
   useEffect(() => {
     void loadDashboard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -463,7 +472,39 @@ export default function App() {
 
       <main className="grid">
         <section className="panel span-2">
+          <h2>How This Dashboard Works</h2>
+          <p className="help-text">
+            This system checks whether output claims are physically realistic. Inside allowed range,
+            swaps pass automatically. Below range creates warnings/penalties. Above range or near-100%
+            claim pauses and raises a critical alert.
+          </p>
+          <div className="explainer-grid">
+            <article className="explain-card">
+              <strong>Available Processors</strong>
+              <p>{allProcessorIds.join(", ") || "None"}</p>
+            </article>
+            <article className="explain-card">
+              <strong>Available Process Types</strong>
+              <p>{allProcessTypes.join(", ") || "None"}</p>
+            </article>
+            <article className="explain-card">
+              <strong>If You Mint Input</strong>
+              <p>Creates an input token. Graphs do not move until a swap is executed.</p>
+            </article>
+            <article className="explain-card">
+              <strong>If You Execute Swap</strong>
+              <p>Outputs, alerts, and all graphs update from the new transaction result.</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="panel span-2">
           <h2>Live Graphs</h2>
+          <p className="help-text">
+            Trend = actual yield over recent swaps, timeline = output quantity by recent swap, process
+            bar = average yield vs allowed range, alert bars = warning/critical counts, donut = output
+            mix by process type.
+          </p>
           <div className="graphs-grid">
             <article className="graph-card">
               <h3>Yield Trend (Actual %)</h3>
@@ -587,6 +628,9 @@ export default function App() {
 
         <section className="panel">
           <h2>Process Type Explorer</h2>
+          <p className="help-text">
+            Shows each process type, its loss/allowed range, and which processors are authorized.
+          </p>
           <div className="scroll-table">
             <table>
               <thead>
@@ -643,6 +687,7 @@ export default function App() {
 
         <section className="panel">
           <h2>Yield Standards Oracle</h2>
+          <p className="help-text">Official min/max yield limits used by enforcement.</p>
           <table>
             <thead>
               <tr>
@@ -665,6 +710,9 @@ export default function App() {
 
         <section className="panel">
           <h2>Processor Registry</h2>
+          <p className="help-text">
+            Searchable/scrollable processor list with compliance and authorized process types.
+          </p>
           <div className="toolbar">
             <Input
               placeholder="Search processors..."
@@ -711,6 +759,9 @@ export default function App() {
 
         <section className="panel">
           <h2>Mint Input Material DDP</h2>
+          <p className="help-text">
+            Create an input token (digital passport for real input material batch).
+          </p>
           <form className="form" onSubmit={handleMint}>
             <label>
               Processor ID
@@ -767,6 +818,9 @@ export default function App() {
 
         <section className="panel">
           <h2>Token Swap Enforcement</h2>
+          <p className="help-text">
+            Burns input token and mints output token only if claim is within tolerance rules.
+          </p>
           <div className="scenario-row">
             {Object.entries(scenarioPresets).map(([key, value]) => (
               <Button
@@ -872,6 +926,7 @@ export default function App() {
 
         <section className="panel">
           <h2>Recent Output Passports</h2>
+          <p className="help-text">Latest processed outputs with claimed vs actual yield.</p>
           <div className="list">
             {snapshot.outputs.slice(0, 10).map((out) => (
               <article key={out.tokenId} className={`item ${out.severity.toLowerCase()}`}>
@@ -889,6 +944,9 @@ export default function App() {
 
         <section className="panel">
           <h2>Alerts</h2>
+          <p className="help-text">
+            Warning/Critical signals generated when claims move outside expected behavior.
+          </p>
           <div className="toolbar">
             <select
               value={alertSeverity}
