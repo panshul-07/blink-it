@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { fetchDashboard, mintInputMaterial, processSwap } from "./api";
-import type { DashboardSnapshot } from "./types";
+import { useTheme } from "./theme";
+import type { DashboardSnapshot, ProcessorDDP } from "./types";
 
 type SwapForm = {
   processorId: string;
@@ -13,6 +14,8 @@ type SwapForm = {
   qualityRejection: number;
 };
 
+type ProcessorSort = "score_desc" | "score_asc" | "id_asc";
+
 const emptySnapshot: DashboardSnapshot = {
   standards: [],
   processors: [],
@@ -21,13 +24,37 @@ const emptySnapshot: DashboardSnapshot = {
   alerts: []
 };
 
+const scenarioPresets = {
+  normal: { name: "Normal", claimedOutputQty: 900, evaporation: 3, waste: 7, qualityRejection: 0 },
+  warning: {
+    name: "Low Yield Warning",
+    claimedOutputQty: 780,
+    evaporation: 9,
+    waste: 11,
+    qualityRejection: 2
+  },
+  critical: {
+    name: "Critical Range",
+    claimedOutputQty: 760,
+    evaporation: 11,
+    waste: 15,
+    qualityRejection: 3
+  }
+};
+
 export default function App() {
+  const { mode, toggleTheme } = useTheme();
   const [snapshot, setSnapshot] = useState<DashboardSnapshot>(emptySnapshot);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [minting, setMinting] = useState(false);
   const [swapping, setSwapping] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [processorQuery, setProcessorQuery] = useState("");
+  const [processorSort, setProcessorSort] = useState<ProcessorSort>("score_desc");
+  const [showSuspendedOnly, setShowSuspendedOnly] = useState(false);
+  const [alertSeverity, setAlertSeverity] = useState<"ALL" | "WARNING" | "CRITICAL">("ALL");
 
   const [mintForm, setMintForm] = useState({
     ownerProcessorId: "proc_alpha",
@@ -74,6 +101,12 @@ export default function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const applySwapScenario = (scenario: keyof typeof scenarioPresets) => {
+    const preset = scenarioPresets[scenario];
+    setSwapForm((prev) => ({ ...prev, ...preset }));
+    setNotice(`Scenario applied: ${preset.name}`);
   };
 
   const handleMint = async (ev: FormEvent) => {
@@ -123,10 +156,52 @@ export default function App() {
 
   const outputCount = snapshot.outputs.length;
   const criticalCount = snapshot.alerts.filter((a) => a.severity === "CRITICAL").length;
+  const warningCount = snapshot.alerts.filter((a) => a.severity === "WARNING").length;
+  const avgCompliance = snapshot.processors.length
+    ? snapshot.processors.reduce((sum, p) => sum + p.complianceScore, 0) / snapshot.processors.length
+    : 0;
+
+  const processorRows = useMemo(() => {
+    const q = processorQuery.trim().toLowerCase();
+    const filtered = snapshot.processors.filter((processor) => {
+      const textMatch =
+        q.length === 0 ||
+        processor.processorId.toLowerCase().includes(q) ||
+        processor.equipmentSpecs.toLowerCase().includes(q) ||
+        processor.processAuthorizations.join(" ").toLowerCase().includes(q);
+      const suspendedMatch = !showSuspendedOnly || processor.suspended;
+      return textMatch && suspendedMatch;
+    });
+
+    const sorter: Record<ProcessorSort, (a: ProcessorDDP, b: ProcessorDDP) => number> = {
+      score_desc: (a, b) => b.complianceScore - a.complianceScore,
+      score_asc: (a, b) => a.complianceScore - b.complianceScore,
+      id_asc: (a, b) => a.processorId.localeCompare(b.processorId)
+    };
+    return filtered.sort(sorter[processorSort]);
+  }, [snapshot.processors, processorQuery, processorSort, showSuspendedOnly]);
+
+  const filteredAlerts = useMemo(
+    () =>
+      alertSeverity === "ALL"
+        ? snapshot.alerts
+        : snapshot.alerts.filter((a) => a.severity === alertSeverity),
+    [snapshot.alerts, alertSeverity]
+  );
 
   useEffect(() => {
     void loadDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const timer = setInterval(() => {
+      void loadDashboard();
+    }, 15000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh]);
 
   return (
     <div className="app-shell">
@@ -139,9 +214,17 @@ export default function App() {
             response logic.
           </p>
         </div>
-        <button className="refresh-btn" onClick={loadDashboard} disabled={loading}>
-          {loading ? "Refreshing..." : "Refresh Data"}
-        </button>
+        <div className="hero-actions">
+          <button className="ghost-btn" onClick={toggleTheme}>
+            Theme: {mode === "dark" ? "Dark" : "Light"}
+          </button>
+          <button className="ghost-btn" onClick={() => setAutoRefresh((v) => !v)}>
+            Auto Refresh: {autoRefresh ? "On" : "Off"}
+          </button>
+          <button className="refresh-btn" onClick={loadDashboard} disabled={loading}>
+            {loading ? "Refreshing..." : "Refresh Data"}
+          </button>
+        </div>
       </header>
 
       <section className="stats">
@@ -160,6 +243,14 @@ export default function App() {
         <article>
           <h3>Critical Alerts</h3>
           <p>{criticalCount}</p>
+        </article>
+        <article>
+          <h3>Warnings</h3>
+          <p>{warningCount}</p>
+        </article>
+        <article>
+          <h3>Avg Compliance</h3>
+          <p>{(avgCompliance * 100).toFixed(1)}%</p>
         </article>
       </section>
 
@@ -187,6 +278,49 @@ export default function App() {
               ))}
             </tbody>
           </table>
+        </section>
+
+        <section className="panel">
+          <h2>Processor Registry</h2>
+          <div className="toolbar">
+            <input
+              placeholder="Search processors..."
+              value={processorQuery}
+              onChange={(e) => setProcessorQuery(e.target.value)}
+            />
+            <select
+              value={processorSort}
+              onChange={(e) => setProcessorSort(e.target.value as ProcessorSort)}
+            >
+              <option value="score_desc">Score High-Low</option>
+              <option value="score_asc">Score Low-High</option>
+              <option value="id_asc">ID A-Z</option>
+            </select>
+            <label className="checkbox-inline">
+              <input
+                type="checkbox"
+                checked={showSuspendedOnly}
+                onChange={(e) => setShowSuspendedOnly(e.target.checked)}
+              />
+              Suspended only
+            </label>
+          </div>
+          <div className="processor-scroll">
+            {processorRows.map((p) => (
+              <article key={p.processorId} className={`processor-card ${p.suspended ? "suspended" : ""}`}>
+                <div>
+                  <strong>{p.processorId}</strong>
+                  <small>{p.equipmentSpecs}</small>
+                </div>
+                <div className="chip-row">
+                  <span className="chip">Cert {p.certificationLevel}</span>
+                  <span className="chip">{(p.complianceScore * 100).toFixed(1)}% compliance</span>
+                  {p.suspended && <span className="chip danger">Suspended</span>}
+                </div>
+              </article>
+            ))}
+            {processorRows.length === 0 && <p>No processors match current filters.</p>}
+          </div>
         </section>
 
         <section className="panel">
@@ -246,6 +380,18 @@ export default function App() {
 
         <section className="panel">
           <h2>Token Swap Enforcement</h2>
+          <div className="scenario-row">
+            {Object.entries(scenarioPresets).map(([key, value]) => (
+              <button
+                key={key}
+                className="mini-btn"
+                type="button"
+                onClick={() => applySwapScenario(key as keyof typeof scenarioPresets)}
+              >
+                {value.name}
+              </button>
+            ))}
+          </div>
           <form className="form" onSubmit={handleSwap}>
             <label>
               Processor ID
@@ -337,7 +483,7 @@ export default function App() {
         <section className="panel">
           <h2>Recent Output Passports</h2>
           <div className="list">
-            {snapshot.outputs.slice(0, 8).map((out) => (
+            {snapshot.outputs.slice(0, 10).map((out) => (
               <article key={out.tokenId} className={`item ${out.severity.toLowerCase()}`}>
                 <strong>{out.tokenId}</strong>
                 <p>{out.message}</p>
@@ -353,8 +499,18 @@ export default function App() {
 
         <section className="panel">
           <h2>Alerts</h2>
+          <div className="toolbar">
+            <select
+              value={alertSeverity}
+              onChange={(e) => setAlertSeverity(e.target.value as "ALL" | "WARNING" | "CRITICAL")}
+            >
+              <option value="ALL">All Alerts</option>
+              <option value="WARNING">Warnings</option>
+              <option value="CRITICAL">Critical</option>
+            </select>
+          </div>
           <div className="list">
-            {snapshot.alerts.slice(0, 8).map((alert) => (
+            {filteredAlerts.slice(0, 12).map((alert) => (
               <article key={alert.alertId} className={`item ${alert.severity.toLowerCase()}`}>
                 <strong>{alert.severity}</strong>
                 <p>{alert.message}</p>
@@ -363,10 +519,11 @@ export default function App() {
                 </small>
               </article>
             ))}
-            {snapshot.alerts.length === 0 && <p>No alerts.</p>}
+            {filteredAlerts.length === 0 && <p>No alerts in this filter.</p>}
           </div>
         </section>
       </main>
     </div>
   );
 }
+
