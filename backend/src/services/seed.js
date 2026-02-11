@@ -2,7 +2,7 @@ export const seedStore = (store) => {
   store.setYieldRange({
     processType: "grain_cleaning_drying",
     minimumPct: 94,
-    maximumPct: 97,
+    maximumPct: 98,
     actor: "standards_body_v1",
     reason: "Paddy/Wheat baseline"
   });

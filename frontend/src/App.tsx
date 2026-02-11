@@ -82,20 +82,20 @@ const emptySnapshot: DashboardSnapshot = {
 };
 
 const scenarioPresets = {
-  normal: { name: "Normal", claimedOutputQty: 900, evaporation: 3, waste: 7, qualityRejection: 0 },
+  normal: { name: "Normal", claimedOutputQty: 960, evaporation: 3, waste: 4, qualityRejection: 0 },
   warning: {
     name: "Low Yield Warning",
-    claimedOutputQty: 780,
+    claimedOutputQty: 920,
     evaporation: 9,
     waste: 11,
     qualityRejection: 2
   },
   critical: {
-    name: "Critical Range",
-    claimedOutputQty: 760,
-    evaporation: 11,
-    waste: 15,
-    qualityRejection: 3
+    name: "Adversarial Claim",
+    claimedOutputQty: 1000,
+    evaporation: 0,
+    waste: 0,
+    qualityRejection: 0
   }
 };
 

@@ -16,6 +16,18 @@ export class ArchitectureOneStore {
     this.violationCounts = new Map();
   }
 
+  addAlert({ processorId, processType, severity, message, outputTokenId = null }) {
+    this.alerts.unshift({
+      alertId: makeId("alert"),
+      processorId,
+      processType,
+      severity,
+      message,
+      timestamp: nowISO(),
+      outputTokenId
+    });
+  }
+
   setYieldRange({ processType, minimumPct, maximumPct, actor, reason }) {
     if (minimumPct < 0 || maximumPct > 100 || minimumPct >= maximumPct) {
       throw new Error("Invalid yield range");
@@ -112,9 +124,26 @@ export class ArchitectureOneStore {
     }
 
     const claimedYieldPct = input.inputQty <= 0 ? 0 : (input.claimedOutputQty / input.inputQty) * 100;
+    if (claimedYieldPct >= 99) {
+      const message = `Paused: adversarial near-perfect claim ${claimedYieldPct.toFixed(2)}%`;
+      this.addAlert({
+        processorId: input.processorId,
+        processType: input.processType,
+        severity: "CRITICAL",
+        message
+      });
+      throw new Error(message);
+    }
     if (claimedYieldPct > standard.maximumPct) {
+      const message = `Paused: claimed yield ${claimedYieldPct.toFixed(2)}% exceeds max ${standard.maximumPct.toFixed(2)}%`;
+      this.addAlert({
+        processorId: input.processorId,
+        processType: input.processType,
+        severity: "CRITICAL",
+        message
+      });
       throw new Error(
-        `Reverted: claimed yield ${claimedYieldPct.toFixed(2)}% exceeds max ${standard.maximumPct.toFixed(2)}%`
+        message
       );
     }
 
@@ -139,7 +168,14 @@ export class ArchitectureOneStore {
         auditFlagged = true;
       } else {
         processor.suspended = true;
-        throw new Error("Persistent violations: processor suspended");
+        const message = "Persistent violations: processor suspended";
+        this.addAlert({
+          processorId: input.processorId,
+          processType: input.processType,
+          severity: "CRITICAL",
+          message
+        });
+        throw new Error(message);
       }
     }
 
@@ -188,13 +224,11 @@ export class ArchitectureOneStore {
     this.outputMaterials.set(outputTokenId, output);
 
     if (severity !== "INFO") {
-      this.alerts.unshift({
-        alertId: makeId("alert"),
+      this.addAlert({
         processorId: input.processorId,
         processType: input.processType,
         severity,
         message,
-        timestamp: nowISO(),
         outputTokenId
       });
     }
@@ -218,4 +252,3 @@ export class ArchitectureOneStore {
     };
   }
 }
-

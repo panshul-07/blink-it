@@ -29,7 +29,7 @@ const makeId = (prefix: string) => `${prefix}_${Math.random().toString(36).slice
 const now = () => new Date().toISOString();
 
 const standards: YieldStandard[] = [
-  { processType: "grain_cleaning_drying", minimumPct: 94, maximumPct: 97 },
+  { processType: "grain_cleaning_drying", minimumPct: 94, maximumPct: 98 },
   { processType: "fruit_sorting_packaging", minimumPct: 92, maximumPct: 95 },
   { processType: "metal_ore_refining", minimumPct: 93, maximumPct: 96 },
   { processType: "coffee_bean_processing", minimumPct: 91, maximumPct: 94 },
@@ -97,6 +97,14 @@ const outputs: OutputMaterialDDP[] = [];
 const alerts: Alert[] = [];
 const violations: Record<string, number> = {};
 
+function addAlert(alert: Omit<Alert, "alertId" | "timestamp">) {
+  alerts.unshift({
+    alertId: makeId("alert"),
+    timestamp: now(),
+    ...alert
+  });
+}
+
 function getRange(processType: string): YieldStandard {
   const standard = standards.find((s) => s.processType === processType);
   if (!standard) throw new Error(`No yield standard for ${processType}`);
@@ -146,10 +154,25 @@ export async function processMockSwap(input: SwapInput): Promise<OutputMaterialD
 
   const range = getRange(input.processType);
   const claimedYieldPct = (input.claimedOutputQty / input.inputQty) * 100;
+  if (claimedYieldPct >= 99) {
+    const message = `Paused: adversarial near-perfect claim ${claimedYieldPct.toFixed(2)}%`;
+    addAlert({
+      processorId: input.processorId,
+      processType: input.processType,
+      severity: "CRITICAL",
+      message
+    });
+    throw new Error(message);
+  }
   if (claimedYieldPct > range.maximumPct) {
-    throw new Error(
-      `Reverted: claimed yield ${claimedYieldPct.toFixed(2)}% exceeds max ${range.maximumPct.toFixed(2)}%`
-    );
+    const message = `Paused: claimed yield ${claimedYieldPct.toFixed(2)}% exceeds max ${range.maximumPct.toFixed(2)}%`;
+    addAlert({
+      processorId: input.processorId,
+      processType: input.processType,
+      severity: "CRITICAL",
+      message
+    });
+    throw new Error(message);
   }
 
   const key = `${input.processorId}:${input.processType}`;
@@ -175,7 +198,14 @@ export async function processMockSwap(input: SwapInput): Promise<OutputMaterialD
       auditFlagged = true;
     } else {
       processor.suspended = true;
-      throw new Error("Persistent violations: processor suspended");
+      const message = "Persistent violations: processor suspended";
+      addAlert({
+        processorId: input.processorId,
+        processType: input.processType,
+        severity: "CRITICAL",
+        message
+      });
+      throw new Error(message);
     }
   }
 
@@ -202,13 +232,11 @@ export async function processMockSwap(input: SwapInput): Promise<OutputMaterialD
 
   outputs.unshift(output);
   if (severity !== "INFO") {
-    alerts.unshift({
-      alertId: makeId("alert"),
+    addAlert({
       processorId: input.processorId,
       processType: input.processType,
       severity,
       message,
-      timestamp: now(),
       outputTokenId: output.tokenId
     });
   }
