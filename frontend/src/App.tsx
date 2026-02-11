@@ -264,6 +264,25 @@ export default function App() {
     [snapshot.alerts, alertSeverity]
   );
 
+  const processTypeExplorer = useMemo(() => {
+    const processorByType = snapshot.processors.reduce<Record<string, string[]>>((acc, processor) => {
+      processor.processAuthorizations.forEach((type) => {
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(processor.processorId);
+      });
+      return acc;
+    }, {});
+
+    return snapshot.standards
+      .map((standard) => ({
+        processType: standard.processType,
+        minimumPct: standard.minimumPct,
+        maximumPct: standard.maximumPct,
+        processors: (processorByType[standard.processType] ?? []).sort()
+      }))
+      .sort((a, b) => a.processType.localeCompare(b.processType));
+  }, [snapshot.standards, snapshot.processors]);
+
   useEffect(() => {
     void loadDashboard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -396,6 +415,55 @@ export default function App() {
         </section>
 
         <section className="panel">
+          <h2>Process Type Explorer</h2>
+          <div className="scroll-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Process Type</th>
+                  <th>Min %</th>
+                  <th>Max %</th>
+                  <th>Processors</th>
+                </tr>
+              </thead>
+              <tbody>
+                {processTypeExplorer.map((item) => (
+                  <tr key={item.processType}>
+                    <td>{item.processType}</td>
+                    <td>{item.minimumPct}</td>
+                    <td>{item.maximumPct}</td>
+                    <td>{item.processors.length}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="process-type-scroll">
+            {processTypeExplorer.map((item) => (
+              <article key={item.processType} className="process-type-card">
+                <div>
+                  <strong>{item.processType}</strong>
+                  <small>
+                    Allowed yield range {item.minimumPct}% - {item.maximumPct}%
+                  </small>
+                </div>
+                <div className="chip-row">
+                  {item.processors.length ? (
+                    item.processors.map((processorId) => (
+                      <Badge key={`${item.processType}-${processorId}`} variant="outline">
+                        {processorId}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Badge variant="warning">No processors mapped</Badge>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="panel">
           <h2>Yield Standards Oracle</h2>
           <table>
             <thead>
@@ -449,6 +517,13 @@ export default function App() {
                   <Badge variant="secondary">Cert {p.certificationLevel}</Badge>
                   <Badge variant="outline">{(p.complianceScore * 100).toFixed(1)}% compliance</Badge>
                   {p.suspended && <Badge variant="critical">Suspended</Badge>}
+                </div>
+                <div className="chip-row">
+                  {p.processAuthorizations.map((processType) => (
+                    <Badge key={`${p.processorId}-${processType}`} variant="outline">
+                      {processType}
+                    </Badge>
+                  ))}
                 </div>
               </article>
             ))}
