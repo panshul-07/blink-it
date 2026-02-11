@@ -54,8 +54,8 @@ Services:
 
 ## Live Working Output
 
-- Final live frontend (works now): `https://cdn.jsdelivr.net/gh/panshul-07/blink-it@master/docs/index.html`
-- GitHub Pages target link: `https://panshul-07.github.io/blink-it/`
+- Final live frontend (runtime-hosted): `https://rawcdn.githack.com/panshul-07/blink-it/master/docs/index.html`
+- GitHub Pages target link (enable in repo settings): `https://panshul-07.github.io/blink-it/`
 - Primary deployment: GitHub Pages via `/Users/panshulaj/Documents/New project/.github/workflows/deploy-pages.yml`
 - Fallback deployment (already committed): static build under `/Users/panshulaj/Documents/New project/docs`
 - Note: live build uses frontend mock mode (`VITE_USE_MOCK=true`) so Architecture 1 flows work without a hosted backend.
