@@ -52,6 +52,12 @@ Services:
 - Backend GraphQL: `http://localhost:4000/graphql`
 - Frontend UI: `http://localhost:5173`
 
+## Live Working Output
+
+- Final live link: `https://panshul-07.github.io/blink-it/`
+- Deployment: GitHub Pages via `/Users/panshulaj/Documents/New project/.github/workflows/deploy-pages.yml`
+- Note: live build uses frontend mock mode (`VITE_USE_MOCK=true`) so Architecture 1 flows work without a hosted backend.
+
 ## Blockchain Contracts
 
 Contracts:

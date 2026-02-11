@@ -1,6 +1,8 @@
 import type { DashboardSnapshot, InputMaterialDDP, OutputMaterialDDP } from "./types";
+import { fetchMockDashboard, mintMockInputMaterial, processMockSwap } from "./mockApi";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000/graphql";
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 type GraphQLResponse<T> = {
   data?: T;
@@ -24,6 +26,9 @@ async function graphQL<T>(query: string, variables?: Record<string, unknown>): P
 }
 
 export async function fetchDashboard(): Promise<DashboardSnapshot> {
+  if (USE_MOCK) {
+    return fetchMockDashboard();
+  }
   const data = await graphQL<{ dashboard: DashboardSnapshot }>(`
     query Dashboard {
       dashboard {
@@ -46,6 +51,9 @@ export async function mintInputMaterial(input: {
   qualityGrade: string;
   moistureContent: number;
 }): Promise<InputMaterialDDP> {
+  if (USE_MOCK) {
+    return mintMockInputMaterial(input);
+  }
   const data = await graphQL<{ mintInputMaterial: InputMaterialDDP }>(
     `
       mutation MintInputMaterial($input: MintInputMaterialInput!) {
@@ -74,6 +82,9 @@ export async function processSwap(input: {
   processType: string;
   lossBreakdown?: { evaporation?: number; waste?: number; qualityRejection?: number };
 }): Promise<OutputMaterialDDP> {
+  if (USE_MOCK) {
+    return processMockSwap(input);
+  }
   const data = await graphQL<{ processSwap: OutputMaterialDDP }>(
     `
       mutation ProcessSwap($input: ProcessSwapInput!) {
@@ -97,4 +108,3 @@ export async function processSwap(input: {
   );
   return data.processSwap;
 }
-
