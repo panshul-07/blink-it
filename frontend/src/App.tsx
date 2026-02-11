@@ -418,8 +418,7 @@ export default function App() {
     <div className="app-shell">
       <header className="hero">
         <div>
-          <p className="eyebrow">Architecture 1</p>
-          <h1>Yield Accounting Command Center</h1>
+          <h1 className="title-gradient">Yield Accounting Command Center</h1>
           <p className="subhead">
             Centralized yield standards oracle with atomic token swap enforcement and graduated
             response logic.
@@ -947,6 +946,12 @@ export default function App() {
           <p className="help-text">
             Warning/Critical signals generated when claims move outside expected behavior.
           </p>
+          <div className="alert-guide">
+            <small>
+              `INFO`: every successful swap. `WARNING`: claimed yield below process minimum.
+              `CRITICAL`: above max, near-perfect (`&ge;99%`) claim, or repeated severe deviations.
+            </small>
+          </div>
           <div className="toolbar">
             <select
               value={alertSeverity}

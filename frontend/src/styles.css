@@ -58,7 +58,12 @@ body {
   gap: 18px;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--panel) 88%, transparent);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
 .hero-actions {
@@ -91,6 +96,20 @@ body {
 h1 {
   margin: 4px 0 8px;
   font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+}
+
+.title-gradient {
+  background: linear-gradient(92deg, #0f172a, #1d4ed8 55%, #0f766e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+:root[data-theme="dark"] .title-gradient {
+  background: linear-gradient(92deg, #f8fafc, #93c5fd 55%, #5eead4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .subhead {
@@ -147,6 +166,7 @@ button[type="submit"]:disabled {
   border-radius: 14px;
   padding: 12px;
   backdrop-filter: blur(8px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
 }
 
 .stats h3 {
@@ -199,6 +219,7 @@ button[type="submit"]:disabled {
   border-radius: 14px;
   padding: 14px;
   backdrop-filter: blur(10px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
 }
 
 .panel h2 {
@@ -642,6 +663,19 @@ td {
 .item strong {
   margin: 2px 0;
   display: block;
+}
+
+.alert-guide {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+:root[data-theme="dark"] .alert-guide {
+  background: rgba(30, 41, 59, 0.45);
 }
 
 @media (max-width: 1080px) {
