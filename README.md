@@ -55,8 +55,17 @@ Services:
 ## Live Working Output
 
 - Final live link: `https://panshul-07.github.io/blink-it/`
-- Deployment: GitHub Pages via `/Users/panshulaj/Documents/New project/.github/workflows/deploy-pages.yml`
+- Primary deployment: GitHub Pages via `/Users/panshulaj/Documents/New project/.github/workflows/deploy-pages.yml`
+- Fallback deployment (already committed): static build under `/Users/panshulaj/Documents/New project/docs`
 - Note: live build uses frontend mock mode (`VITE_USE_MOCK=true`) so Architecture 1 flows work without a hosted backend.
+
+### If URL shows 404, enable branch-based Pages in 30 seconds
+
+1. Open repo settings: `Settings -> Pages`
+2. Under `Build and deployment`, set `Source = Deploy from a branch`
+3. Set `Branch = master` and `Folder = /docs`
+4. Save and wait 1-2 minutes
+5. Open: `https://panshul-07.github.io/blink-it/`
 
 ## Blockchain Contracts
 
