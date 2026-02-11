@@ -4,12 +4,14 @@ Implementation of **Architecture 1: Centralized Efficiency Oracle with Smart Con
 
 - Backend: `Node.js + Express + GraphQL`
 - Frontend: `React + TypeScript`
+- Blockchain: `Solidity + Hardhat`
 - Core logic: DDPs, yield standards oracle, atomic swap enforcement, graduated response system, alerts, and lineage
 
 ## Project Structure
 
 - `/Users/panshulaj/Documents/New project/backend` - GraphQL API service
 - `/Users/panshulaj/Documents/New project/frontend` - React dashboard
+- `/Users/panshulaj/Documents/New project/blockchain` - smart contracts, deploy scripts, tests
 - `/Users/panshulaj/Documents/New project/src` - original Python MVP logic (kept as reference)
 - `/Users/panshulaj/Documents/New project/tests` - Python unit tests for MVP logic
 
@@ -49,6 +51,20 @@ Services:
 
 - Backend GraphQL: `http://localhost:4000/graphql`
 - Frontend UI: `http://localhost:5173`
+
+## Blockchain Contracts
+
+Contracts:
+- `/Users/panshulaj/Documents/New project/blockchain/contracts/YieldStandardsOracle.sol`
+- `/Users/panshulaj/Documents/New project/blockchain/contracts/YieldAccountingSwap.sol`
+
+Commands:
+
+```bash
+npm install
+npm run compile:chain
+npm run test:chain
+```
 
 ## Legacy Python MVP
 

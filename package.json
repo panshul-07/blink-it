@@ -4,13 +4,16 @@
   "version": "1.0.0",
   "workspaces": [
     "backend",
-    "frontend"
+    "frontend",
+    "blockchain"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "dev:backend": "npm run dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
     "build": "npm run build -w frontend",
+    "compile:chain": "npm run compile -w blockchain",
+    "test:chain": "npm run test -w blockchain",
     "start": "npm run start -w backend"
   },
   "devDependencies": {
