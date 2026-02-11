@@ -117,6 +117,78 @@ const processors: ProcessorDDP[] = [
     equipmentSpecs: "Clarifier + evaporator train",
     complianceScore: 0.88,
     suspended: false
+  },
+  {
+    processorId: "proc_lambda",
+    processAuthorizations: ["grain_cleaning_drying"],
+    certificationLevel: "L2",
+    equipmentSpecs: "Drying tunnel + sieve stack",
+    complianceScore: 0.93,
+    suspended: false
+  },
+  {
+    processorId: "proc_mu",
+    processAuthorizations: ["fruit_sorting_packaging"],
+    certificationLevel: "L2",
+    equipmentSpecs: "Fruit grader + packing robot",
+    complianceScore: 0.94,
+    suspended: false
+  },
+  {
+    processorId: "proc_nu",
+    processAuthorizations: ["metal_ore_refining"],
+    certificationLevel: "L1",
+    equipmentSpecs: "Smelter + flotation line",
+    complianceScore: 0.9,
+    suspended: false
+  },
+  {
+    processorId: "proc_xi",
+    processAuthorizations: ["coffee_bean_processing"],
+    certificationLevel: "L2",
+    equipmentSpecs: "Washer + drying patio",
+    complianceScore: 0.93,
+    suspended: false
+  },
+  {
+    processorId: "proc_omicron",
+    processAuthorizations: ["cotton_ginning"],
+    certificationLevel: "L1",
+    equipmentSpecs: "High-speed gin stand",
+    complianceScore: 0.89,
+    suspended: false
+  },
+  {
+    processorId: "proc_pi",
+    processAuthorizations: ["sugarcane_processing", "fruit_sorting_packaging"],
+    certificationLevel: "L2",
+    equipmentSpecs: "Juice extractor + package line",
+    complianceScore: 0.91,
+    suspended: false
+  },
+  {
+    processorId: "proc_rho",
+    processAuthorizations: ["grain_cleaning_drying", "cotton_ginning"],
+    certificationLevel: "L1",
+    equipmentSpecs: "Cleaner + gin combo plant",
+    complianceScore: 0.88,
+    suspended: false
+  },
+  {
+    processorId: "proc_sigma",
+    processAuthorizations: ["metal_ore_refining", "coffee_bean_processing"],
+    certificationLevel: "L2",
+    equipmentSpecs: "Hybrid refining/roasting line",
+    complianceScore: 0.92,
+    suspended: false
+  },
+  {
+    processorId: "proc_tau",
+    processAuthorizations: ["grain_cleaning_drying", "sugarcane_processing"],
+    certificationLevel: "L2",
+    equipmentSpecs: "Dry mill + diffuser integration",
+    complianceScore: 0.9,
+    suspended: false
   }
 ];
 
@@ -179,6 +251,46 @@ const inputs: InputMaterialDDP[] = [
     qualityGrade: "A",
     moistureContent: 15.4,
     ownerProcessorId: "proc_epsilon",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "grain_cleaning_drying",
+    quantity: 1050,
+    originFarmHash: "farm_hash_seed_7",
+    qualityGrade: "A",
+    moistureContent: 10.7,
+    ownerProcessorId: "proc_lambda",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "fruit_sorting_packaging",
+    quantity: 980,
+    originFarmHash: "farm_hash_seed_8",
+    qualityGrade: "A",
+    moistureContent: 9.8,
+    ownerProcessorId: "proc_mu",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "metal_ore_refining",
+    quantity: 1250,
+    originFarmHash: "mine_hash_seed_9",
+    qualityGrade: "A",
+    moistureContent: 4.5,
+    ownerProcessorId: "proc_nu",
+    createdAt: now()
+  },
+  {
+    tokenId: makeId("in"),
+    processType: "coffee_bean_processing",
+    quantity: 860,
+    originFarmHash: "farm_hash_seed_10",
+    qualityGrade: "A",
+    moistureContent: 12.4,
+    ownerProcessorId: "proc_xi",
     createdAt: now()
   }
 ];
