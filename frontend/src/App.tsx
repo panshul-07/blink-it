@@ -73,6 +73,15 @@ const PROCESS_CATALOG: Record<string, ProcessMeta> = {
   }
 };
 
+const PROCESS_ORDER = [
+  "grain_cleaning_drying",
+  "fruit_sorting_packaging",
+  "metal_ore_refining",
+  "coffee_bean_processing",
+  "cotton_ginning",
+  "sugarcane_processing"
+];
+
 const emptySnapshot: DashboardSnapshot = {
   standards: [],
   processors: [],
@@ -112,6 +121,7 @@ export default function App() {
   const [processorSort, setProcessorSort] = useState<ProcessorSort>("score_desc");
   const [showSuspendedOnly, setShowSuspendedOnly] = useState(false);
   const [alertSeverity, setAlertSeverity] = useState<"ALL" | "WARNING" | "CRITICAL">("ALL");
+  const [activeProcessKey, setActiveProcessKey] = useState<string>("grain_cleaning_drying");
 
   const [mintForm, setMintForm] = useState({
     ownerProcessorId: "proc_alpha",
@@ -164,6 +174,13 @@ export default function App() {
     const preset = scenarioPresets[scenario];
     setSwapForm((prev) => ({ ...prev, ...preset }));
     setNotice(`Scenario applied: ${preset.name}`);
+  };
+
+  const quickSelectProcess = (processType: string) => {
+    setActiveProcessKey(processType);
+    setMintForm((prev) => ({ ...prev, processType }));
+    setSwapForm((prev) => ({ ...prev, processType }));
+    setNotice(`Selected process: ${PROCESS_CATALOG[processType]?.label ?? processType}`);
   };
 
   const handleMint = async (ev: FormEvent) => {
@@ -470,6 +487,33 @@ export default function App() {
       {notice && <p className="banner success">{notice}</p>}
 
       <main className="grid">
+        <section className="panel span-2">
+          <h2>Process Catalog (Top Scroll)</h2>
+          <p className="help-text">
+            All process types from your problem statement. Click any process to focus the forms on it.
+          </p>
+          <div className="process-top-scroll">
+            {PROCESS_ORDER.map((processKey) => {
+              const meta = PROCESS_CATALOG[processKey];
+              const isActive = activeProcessKey === processKey;
+              return (
+                <button
+                  key={processKey}
+                  type="button"
+                  className={`process-pill ${isActive ? "active" : ""}`}
+                  onClick={() => quickSelectProcess(processKey)}
+                >
+                  <strong>{meta.label}</strong>
+                  <small>{processKey}</small>
+                  <small>
+                    Input: {meta.inputMaterial} | Loss: {meta.typicalLoss}
+                  </small>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="panel span-2">
           <h2>How This Dashboard Works</h2>
           <p className="help-text">

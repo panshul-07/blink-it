@@ -245,6 +245,40 @@ button[type="submit"]:disabled {
   gap: 8px;
 }
 
+.process-top-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.process-pill {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--ink);
+  padding: 10px;
+  display: grid;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.process-pill small {
+  color: var(--ink-soft);
+}
+
+.process-pill.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb inset;
+}
+
+:root[data-theme="dark"] .process-pill {
+  background: rgba(30, 41, 59, 0.52);
+}
+
 .explain-card {
   border: 1px solid var(--line);
   border-radius: 10px;
