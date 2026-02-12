@@ -715,7 +715,11 @@ export default function App() {
                 <div className="chip-row">
                   {item.processors.length ? (
                     item.processors.map((processorId) => (
-                      <Badge key={`${item.processType}-${processorId}`} variant="outline">
+                      <Badge
+                        key={`${item.processType}-${processorId}`}
+                        variant="secondary"
+                        className="process-badge"
+                      >
                         {processorId}
                       </Badge>
                     ))
@@ -789,7 +793,11 @@ export default function App() {
                 </div>
                 <div className="chip-row">
                   {p.processAuthorizations.map((processType) => (
-                    <Badge key={`${p.processorId}-${processType}`} variant="outline">
+                    <Badge
+                      key={`${p.processorId}-${processType}`}
+                      variant="outline"
+                      className="process-badge"
+                    >
                       {processType}
                     </Badge>
                   ))}
